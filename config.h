@@ -3,25 +3,32 @@
 #include <X11/XF86keysym.h>
 
 /* appearance */
+static const char *light_up[] = {"/usr/bin/brightnessctl", "set", "5%+", NULL};
+static const char *light_down[] = {"/usr/bin/brightnessctl", "set", "5%-", NULL};
+static const char *mpc_next[] = {"/usr/bin/mpc", "next", NULL};
+static const char *mpc_prev[] = {"/usr/bin/mpc", "prev", NULL};
+static const char *mpc_pause[] = {"/usr/bin/mpc", "pause", NULL};
+static const char *mpc_play[] = {"/usr/bin/mpc", "play", NULL};
 static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "0", "+5%",     NULL };
 static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "0", "-5%",     NULL };
 static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "0", "toggle",  NULL };
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const unsigned int gappx     = 5;        /* gaps between windows */
+static const unsigned int borderpx  = 2;        /* border pixel of windows -default = 1*/
+static const unsigned int gappx     = 5;        /* gaps between windows -default = 5*/
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "monospace:size=10" };
-static const char dmenufont[]       = "monospace:size=10";
+static const char *fonts[]          = { "JetBrainsMono Nerd Font:size=8" };
+static const char dmenufont[]       = { "JetBrainsMono Nerd Font:size=8" };
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
+static const char col_orange[]      = "#f77f00";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeSel]  = { col_orange, col_gray1, col_cyan },
 };
 
 /* tagging */
@@ -32,9 +39,11 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+	/* class                 instance    title       tags mask     isfloating   monitor */
+	{ "PacketTracer",         NULL,       NULL,         0,            1,           -1 },
+	{ "jetbrains-studio",     NULL,       NULL,         0,            1,           -1 },
+	{ "Gimp",                 NULL,       NULL,         0,            1,           -1 },
+	{ "Firefox",              NULL,       NULL,       1 << 8,         0,           -1 },
 };
 
 /* layout(s) */
@@ -62,25 +71,31 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_orange, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ 0,                       XF86XK_AudioLowerVolume, spawn, {.v = downvol } },
-	{ 0,                       XF86XK_AudioMute, spawn, {.v = mutevol } },
-	{ 0,                       XF86XK_AudioRaiseVolume, spawn, {.v = upvol   } },
+        { 0,				XK_F8,      spawn ,	   {.v = light_up} },
+	{ 0,				XK_F7,      spawn ,        {.v = light_down} },
+        { 0,				XK_F9,      spawn ,	   {.v = mpc_prev} },
+	{ 0,				XK_F10,     spawn ,        {.v = mpc_next} },
+	{ MODKEY,			XK_F9,      spawn ,        {.v = mpc_play} },
+	{ MODKEY,			XK_F10,     spawn ,        {.v = mpc_pause} },
+	{ 0,               XF86XK_AudioLowerVolume, spawn,	   {.v = downvol } },
+	{ 0,                      XF86XK_AudioMute, spawn,	   {.v = mutevol } },
+	{ 0,               XF86XK_AudioRaiseVolume, spawn,	   {.v = upvol   } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_j,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_c,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
-	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
-	{ MODKEY,                       XK_Tab,    view,           {0} },
+	{ MODKEY,                    XK_semicolon, zoom,           {0} },
+	{ MODKEY,                       XK_e,      view,           {0} },
 	{ MODKEY,                       XK_d,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
